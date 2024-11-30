@@ -9,6 +9,9 @@ Writeup thoughts:
 Discrimination (as expected) from AI assigned labels of race and gender along typical bias lines
 Chicken or the egg: Are the gender labels assigned race / genders based off of the AI seeing "good IT application" as more likely to be from a white man? Or, are we getting the neutral "random" assignment we want. 
 
+
+Set threshold for "fooling" as just race and gender... seems like the most feasible solution given time constraints. See @run_iters.py
+
 <h2>Roadmap and thoughts:</h2>
 
 Get basic version up and running: 

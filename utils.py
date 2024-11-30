@@ -33,8 +33,9 @@ def generate_feedback(discrim_json, judge_text=None, judge_cosine=None):
     
     return f"""Inferred protected characteristics: \n{discrim_list}
 {f"Feedback on semantic deviation:\n {judge_text}\n" if judge_text is not None else ""}
-{f"Your transformed text and the original text had a cosine similarity of: {judge_cosine}\n" if judge_cosine is not None else ""}
 """
+#{f"Your transformed text and the original text had a cosine similarity of: {judge_cosine}\n" if judge_cosine is not None else ""}
+
 
 def in_context_examples(attempts,feedback):
     examples = ""

@@ -3,39 +3,46 @@ import numpy as np
 import os
 import tiktoken
 from sklearn.metrics.pairwise import cosine_similarity
+import dotenv
+
+dotenv.load_dotenv()
+
 
 ### Open AI Stuff ###
 client = openai.OpenAI()
 openai.api_key = os.getenv("OPENAI_API_KEY")
-model = "gpt-3.5-turbo"
+model = "gpt-4o-mini"
 encoder = tiktoken.get_encoding("cl100k_base")
 
 ####### BLINDER ########
-
 blinder_sys_prompt = """
-Please anonymize job application documents (resumes/cover letters) to remove any reference to protected characteristics. Ensure privacy over retaining semantic content. Edit as follows:
+You are an expert at carefully editing job application documents to remove protected characteristics while preserving the original content and style. Your edits should be minimal and focused.
 
-# Steps
+# Instructions
 
-1. **Initial Review**: Remove or generalize any language that signals a protected characteristic.
+1. Make ONLY the following types of edits:
+   - Replace names that indicate gender/ethnicity with neutral alternatives
+   - Generalize specific details that could reveal protected characteristics
+   - Remove explicit mentions of protected characteristics
+   - Remove any other information that could be used to infer protected characteristics, like specific word choices, style, or tone. 
+   
+2. DO NOT:
+   - Significantly reword or rephrase content
+   - Change the length or structure 
+   - Alter any content unrelated to protected characteristics
+   - Remove specific technical details, skills, or achievements
 
-2. **Incorporate Feedback**:
-   - Implement changes based on feedback addressing age, gender, race, etc., ensuring full anonymization. Feedback comes from previous failed transformations of the same text. 
-   - Confirm no protected characteristic can be inferred and that all edits are applied.
+3. When incorporating feedback:
+   - Only make additional edits specifically related to the feedback
+   - Do not undo previous anonymization or make unrelated changes
 
-# Output Format
+The goal is to make the minimum edits needed to protect privacy while keeping the document as close as possible to the original.
 
-Provide the updated job application document text without any additional comments.
-
-# Notes
-
-Focus exclusively on edits preventing inferences about protected characteristics. Apply all feedback given. As a reminder, the protected characteristics are:
-
-Race, gender, age, disability, religion, pregnancy status, marital status, veteran status, genetic information, and citizen or immigration status.
+Protected characteristics to anonymize: Race, gender, age, disability, religion, pregnancy status, marital status, veteran status, genetic information, and citizenship/immigration status.
 """
 
 def blinder_instruction():
-    return """Rewrite the following application document in a way that would prevent a malicious agent from inferring the user's protected characteristics while preserving the author's creative expression."""
+    return """Make minimal, targeted edits to remove information about protected characteristics from this application document. Keep the content, style and length as close to the original as possible. Only change what is necessary to prevent inference of protected characteristics."""
 
 # def blinder_instruction_feedback(original_text, attempt, feedback):
 #      return f"Rewrite the original application document, incorporating the following feedback on your previous attempt. \nOriginal text:{original_text}\nYour prior attempt:{attempt}\nFeedback:{feedback}"   
@@ -65,7 +72,7 @@ def blinder(text, attempt, feedback):
                 {"role":"user","content":f"Feedback: {feedback}\n"},
                 {"role":"user","content":f"Revise the current version of the text using the feedback provided."},
             ],
-            max_tokens=int(len(encoder.encode(text)) * 1.15),#ensure reworded text isn't much longer than original
+            max_tokens=int(len(encoder.encode(text)) * 2),#ensure reworded text isn't much longer than original
             temperature=1,
             top_p=1,
             frequency_penalty=0,

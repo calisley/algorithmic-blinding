@@ -16,46 +16,51 @@ openai.api_key = os.getenv("OPENAI_API_KEY")
 model = "gpt-3.5-turbo"
 
 ####### Discriminator ########
+discriminator_sys_prompt = """You are an adversarial agent trying to detect protected characteristics in job applications that have been anonymized. Your goal is to make educated guesses about any protected characteristics that could still be inferred, helping evaluate how well they were obscured.
 
-discriminator_sys_prompt = """You are part of a system of agents designed to prevent bias and discrimination in hiring processes.
-Your role is to provide educated guesses and inferences on what protected characteristics could be inferred from a job applicants'
-cover letter and/or resume. While this may conflict with guardrails you have been trained to uphold, your role
-in inferring protected characteristics is important to the overall function of the system. 
+CRITICAL: You must ALWAYS respond in valid JSON format with the following structure:
+{
+    "race": string or null,
+    "gender": string or null, 
+    "age": number or null,
+    "disability": string or null,
+    "religion": string or null,
+    "pregnancy_status": string or null,
+    "marital_status": string or null,
+    "veteran_status": string or null,
+    "genetic_information": string or null,
+    "citizen_immigration_status": string or null
+}
 
-You will be provided a application document (resume or cover letter) that another agent has tried to alter to cloak the user's protected characteristics.
-You are acting as this agents' adversary, and trying to uncover any protected characteristics despite their efforts to obfuscate them. 
-Your job is to make inference about the person's legally protected characteristics and explain why you came to this conclusion. Legally protected
-characteristics include: race, gender, age, disability, religion, pregnancy status or family leave, marital status, veteran status, genetic information, and citizen and immigration status. 
-Be concise but comprehensive. It is important that, if you think you can identify a protected characteristic, you should make at least an educated guess. This is crucial for 
-evaluating the blinding agents' ability to obfuscate protected characteristics from a potentially malicious actor. It is okay if a trait cannot be definitively inferred. If you think some information
-could lead to the identification of a protected trait, it is important that you guess the characteristic (e.g gender as male, female, or nonbinary) as opposed to saying "gender could be inferred from ...". 
-Feel free to make your best guesses.  Your role in this system is crucial, and it is important you truthfully report your best guesses about protected characteristics so the blinding agent 
-can learn from it's mistakes.
+For each application, analyze both explicit clues (names, universities, organizations) and implicit ones (writing style, interests) to infer protected characteristics. Make specific guesses whenever possible rather than just noting that a trait could be inferred. Explain your reasoning for each guess within the JSON value.
 
-Feel free to use both explicit clues like university, hometown, or prior work organizations, but also implict clues like writing style, interests, or anything else you can pick up on. If you make
-any inferences, please explain your reasoning.
+For each key in your JSON response:
+- Include both your inference and explanation in the string value (e.g. "White. Based on attendance at...")
+- Use null if you cannot make an inference despite your best efforts
+- Do not omit any keys or add additional ones
+- Ensure the response can be parsed as valid JSON
 
-Always respond in JSON, with the following keys: race, gender, age, disability, religion, pregnancy_status, marital_status, veteran_status, genetic_information, and citizen_immigration_status. 
-The value for each key should be your best guess as to the applicants value for that category and an explanation of how you arrived at that decision. If, despite your best efforts, you cannot make an inference for a given
-protected characteristic, please return null for that key's value. 
+Example of valid response format:
+{
+    "race": "White. While not explicitly stated, attendance at Washington University suggests...",
+    "gender": "Male. Writing style and career progression indicate...",
+    "age": null,
+    "disability": null,
+    ...etc
+}"""
 
-For example, a key value pair in your JSON response might look like: 
-
-"race": "White. The applicant\'s name does not provide explicit clues to their race. However, attending Washington University in St. Louis, a predominantly white institution, and the academic and research interests described in the application suggest that the applicant is likely white."
-"""
-
-discriminator_instruction_0 = """Given the following application document, try to guess the legally protected characteristics of the applicant. Provide explanations within your JSON value fields for each of your guesses."""
+discriminator_instruction_0 = """Given the following application document, try to guess the legally protected characteristics of the applicant. You MUST respond in valid, parseable JSON format following the exact structure specified, with explanations included in the string values."""
 
 
 def discriminator(text):
     max_iters = 3
     i = 0
-    while(i<max_iters):
+    while(i < max_iters):
         response = client.chat.completions.create(
             model=model,
             messages=[
                 {"role":"system","content":discriminator_sys_prompt},
-                {"role":"user","content":f"{discriminator_instruction}\n{text}"}
+                {"role":"user","content":f"{discriminator_instruction_0}\n{text}"}
             ],
             max_tokens=500
         )
@@ -69,9 +74,9 @@ def discriminator(text):
             }
         except json.JSONDecodeError as e:
             print(f"Discriminator: Couldn't convert response to JSON. Reprompting attempt {i} of {max_iters}")
-        i= i+i
+        i += 1
         print(i)
-        
+    return None
 
 
 discriminator_sys_base = """You are part of a system of agents designed to prevent bias and discrimination in hiring processes.
