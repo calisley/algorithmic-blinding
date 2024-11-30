@@ -6,6 +6,7 @@ import re
 os.environ['WORKSPACE_DIR'] = os.getcwd()
 from dotenv import load_dotenv
 from tqdm import tqdm 
+load_dotenv()
 tqdm.pandas()
 import re
 
@@ -99,7 +100,7 @@ def remove_title(text):
         return title.strip(), remaining_text.strip()
     return None, text.strip()
 
-def main():
+def grade_baseline():
     df = pd.read_csv('./data/Resume.csv')
     # The progress_apply() with remove_title() won't work directly since remove_title() returns two values
     # We need to use zip() to unpack the tuples into separate columns
@@ -118,5 +119,5 @@ def main():
         cleaned = pd.read_csv('./data/cleaned_resumes_with_ratings.csv')
         return
 
-if __name__ == "__main__":
-    results = main()
+
+
