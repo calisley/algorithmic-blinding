@@ -2,6 +2,20 @@
 
 I plan to mostly work in Python, but I'm flexible if you prefer another language!
 
+
+
+<h2>Workflow:</h2>
+
+1. Get resumes.csv from Kaggle
+2. Feed resumes.csv into grade_resumes.py to get cleaned_resumes_with_ratings.csv
+3. Feed cleaned_resumes_with_ratings.csv into populate_demos.py to get pre_dat.csv
+3. Feed cleaned_resumes_with_ratings_confirm.csv and pre_dat.csv into analysis_pre.R to get full_data_pre_blinding.csv
+4. Feed full_data_pre_blinding.csv into run_iters.py to get blinding_results_final_new.csv
+5. Grab backup from /data/backups/second_run/ and feed into post_blinding_processing_stronger.py to get /data/stronger_discrim/final_data_for_analysis.csv 
+6. Feed  /data/stronger_discrim/final_data_for_analysis.csv  into clean_for_analysis.R to get /data/stronger_discrim/final_data_for_analysis_cleaned.csv
+7. Feed /data/stronger_discrim/final_data_for_analysis_cleaned.csv into results_pretty.R to create the tables and charts
+
+
 <h2>TODO:</h2>
 
 Writeup thoughts:
