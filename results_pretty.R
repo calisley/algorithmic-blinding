@@ -256,8 +256,8 @@ anova_pre_race <- aov(rating_pre ~ race, data = df_s)
 anova_post_race <- aov(rating_post ~ race, data = df_s)
 
 # Run ANOVA for rating_pre and rating_post by gender
-anova_pre_gender <- aov(rating_pre ~ gender, data = df_s)
-anova_post_gender <- aov(rating_post ~ gender, data = df_s)
+anova_pre_gender <- t.test(rating_pre ~ gender, data = df_s)
+anova_post_gender <- t.test(rating_post ~ gender, data = df_s)
 
 anova_results <- bind_rows(
   tidy(anova_pre_race) %>% mutate(variable = "Rating (Base)", group = "Race"),
@@ -293,13 +293,13 @@ system(paste("wkhtmltoimage", html_file, png_file))
 ### GENDER ANOVA ###
 
 anova_results <- bind_rows(
-  tidy(anova_pre_gender) %>% mutate(variable = "Rating (Base)", group = "Gender"),
-  tidy(anova_post_gender) %>% mutate(variable = "Rating (Post)", group = "Gender")
-) %>% select(variable,statistic, p.value, df) %>% na.omit()
+  tidy(anova_pre_gender) %>% mutate(variable = "Rating (Base) (M-F)", group = "Gender"),
+  tidy(anova_post_gender) %>% mutate(variable = "Rating (Post) (M-F)", group = "Gender")
+) %>% select(variable,estimate, statistic, p.value) %>% na.omit()
 
 gender_table_anova <- gt(anova_results) %>%
   tab_header(
-    title = "ANOVA for Gender Pre and Post Blinding"
+    title = "Difference in Mean Score for Gender Pre and Post Blinding"
   ) %>%
   tab_style(
     style = list(
