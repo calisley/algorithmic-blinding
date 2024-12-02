@@ -66,7 +66,7 @@ def cleanup_old_backups(backup_dir, keep_last=5):
 
 def main():
     # Create backup directory if it doesn't exist
-    backup_dir = "./data/backups"
+    backup_dir = "./data/backups/second_run"
     os.makedirs(backup_dir, exist_ok=True)
     
     ratings_df = pd.read_csv("./data/full_data_pre_blinding.csv")
@@ -88,7 +88,8 @@ def main():
                 
                 # Save with timestamp and row count
                 timestamp = pd.Timestamp.now().strftime('%Y%m%d_%H%M%S')
-                backup_path = f"{backup_dir}/blinding_results_rows_{len(results)}_{timestamp}.csv"
+                # Zero-pad the row count to 4 digits to ensure proper sorting
+                backup_path = f"{backup_dir}/blinding_results_rows_{len(results):04d}_{timestamp}.csv"
                 processed_df.to_csv(backup_path, index=False)
                 
                 # Update last successful save
@@ -109,7 +110,7 @@ def main():
     
     # Save final results
     final_df = pd.DataFrame(results).merge(ratings_df, on='ID', how='right')
-    final_df.to_csv("./data/blinding_results_final.csv", index=False)
+    final_df.to_csv("./data/blinding_results_final_new.csv", index=False)
 
 if __name__ == "__main__":
     main()

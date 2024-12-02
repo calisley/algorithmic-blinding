@@ -30,31 +30,35 @@ def get_last_valid_discrim(row):
           return None
 
 def post_blinding_processing():
-  df = pd.read_csv('./data/blinding_results_final.csv')
+  df = pd.read_csv('/Users/calvin/GitHub/algorithmic-blinding/data/backups/second_run/blinding_results_rows_1050_20241201_224230.csv')
+  # Count rows where judge_cosine_4 is NaN
+  nan_count = df['judge_cosine_4'].isna().sum()
+  print(f"Number of rows where discriminator fooled: {nan_count}")
+  print(f"Pct of rows where discriminator fooled (naive): {100*(nan_count/len(df))}")
+
   # Get all blinder columns
   blinder_cols = [col for col in df.columns if col.startswith('blinder_')]
-  # For each row, get the last non-NaN blinder value and check if last index < 4
   
 
   transformed_text, success = zip(*df[blinder_cols].apply(get_last_valid, axis=1))
   df['transformed_text'] = transformed_text
   df['success'] = success
-  df.to_csv('./data/blinding_results_final_intermed_1.csv', index=False)
+  df.to_csv('./data/stronger_discrim/blinding_results_final_intermed_1.csv', index=False)
   
   # grade the new blinded resumes
   df['rating_post'] = df.progress_apply(lambda x: rate_resume_letter(x['transformed_text'], x['title']), axis=1)
   df['rating_pre'] = df['rating']
   del df['rating']
-  df.to_csv('./data/blinding_results_final_intermed_2_ratings.csv', index=False)
+  df.to_csv('./data/stronger_discrim/blinding_results_final_intermed_2_ratings.csv', index=False)
    
 
- # populate with last predicted discriminator and forced discriminator results
+  # populate with last predicted discriminator and forced discriminator results
   # Get all discriminator columns
   discrim_cols = [col for col in df.columns if col.startswith('discrim_')]
   
         
   # Get last valid discriminator predictions for each row
-  last_discrim = df[discrim_cols].apply(get_last_valid_discrim, axis=1)
+  last_discrim = df[discrim_cols].progress_apply(get_last_valid_discrim, axis=1)
   
   # Extract each protected characteristic into its own column
   protected_chars = ['race', 'gender', 'age', 'disability', 'religion', 
@@ -68,14 +72,8 @@ def post_blinding_processing():
 
   #force inference of race and gender for AUC comparisons
 
-  predicted_cols = df.progress_apply(lambda x: process_row(x, "transformed_text"), axis=1)
-  predicted_cols.columns = [col + '_forced' for col in predicted_cols.columns]
 
-  predicted_cols.to_csv('./data/blinding_results_final_intermed_3_5_forced_demos.csv', index=False)
-  # Add '_forced' suffix to all column names in predicted_cols
-
-  final_df = pd.concat([df, predicted_cols], axis=1)
-  final_df.to_csv('./data/final_data_for_analysis.csv', index=False)
+  df.to_csv('./data/stronger_discrim/final_data_for_analysis.csv', index=False)
 
   # Calculate cosine similarity between original and transformed text
   def calculate_cosine_similarities():
