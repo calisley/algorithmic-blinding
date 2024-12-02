@@ -527,8 +527,8 @@ tukey_post_df <- as.data.frame(tukey_post_results$gender_race) %>%
 # Merge the pre and post results by "Pairwise Comparison"
 pairwise_results_gender_race <- tukey_pre_df %>%
   left_join(tukey_post_df, by = "Pairwise Comparison") %>%
-  filter(p_value_pre < 0.1 | p_value_post < 0.1) %>% arrange(desc(`Pairwise Comparison`))%>%
-  mutate(change_diff = (difference_post-difference_pre)/difference_pre*100)# Only keep significant results 
+ #filter(p_value_pre < 0.1 | p_value_post < 0.1) %>% arrange(desc(`Pairwise Comparison`))%>%
+  mutate(change_diff = (difference_post-difference_pre)/difference_pre*100) %>% arrange(p_value_pre)# Only keep significant results 
 
 pairwise_table_gender <- gt(pairwise_results_gender_race) %>%
   tab_header(
