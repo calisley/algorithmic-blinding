@@ -1,6 +1,7 @@
 <h1>Repo for the adversarial LLMs for demographic blinding in Hiring</h1>
 
-
+<h2>Presentation</h2>
+Check out our presentation on our work here: https://docs.google.com/presentation/d/1-F1tY8iE9VloZEAW-McRBEEYXWZ774TYY7NZkRkMICM/edit!
 
 <h2>Workflow:</h2>
 
